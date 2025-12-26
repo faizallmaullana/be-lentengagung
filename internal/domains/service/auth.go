@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -12,7 +13,6 @@ import (
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/dto"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/repo"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"
-	"github.com/faizallmaullana/lenteng-agung/backend/internal/pkg/mails"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/pkg/utils"
 )
 
@@ -97,21 +97,32 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 	}
 
 	// Generate registration token
-	regToken, err := s.jwtSvc.CreateRegistrationToken(user.ID.String(), user.Email)
+
+	token := utils.RandomString(8)
+
+	payload := dto.JWTPayload{
+		UserID: user.ID.String(),
+		Email:  user.Email,
+		Token:  token,
+	}
+
+	regToken, err := s.jwtSvc.CreateRegistrationToken(payload)
 	if err != nil {
 		return dto.RegisterResponse{}, err
 	}
+	fmt.Println(regToken)
+	fmt.Println(token)
 
 	// Send registration token via email
-	mailSender := mails.NewMailSender()
-	mail := mails.Mailer{
-		To:      user.Email,
-		Subject: "Registration Token",
-		Body:    "Your registration token: " + regToken,
-	}
-	if err := mailSender.SendMail(mail); err != nil {
-		return dto.RegisterResponse{}, err
-	}
+	// mailSender := mails.NewMailSender()
+	// mail := mails.Mailer{
+	// 	To:      user.Email,
+	// 	Subject: "Registration Token",
+	// 	Body:    "Your registration token: " + regToken,
+	// }
+	// if err := mailSender.SendMail(mail); err != nil {
+	// 	return dto.RegisterResponse{}, err
+	// }
 
 	return dto.RegisterResponse{ID: enc, Email: user.Email, CreatedAt: time.Now()}, nil
 }

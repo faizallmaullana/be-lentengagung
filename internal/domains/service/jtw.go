@@ -57,10 +57,11 @@ func (j *JWTService) CreateRefreshToken(payload dto.JWTPayload) (string, error) 
 	return token.SignedString([]byte(j.secretKey))
 }
 
-func (j *JWTService) CreateRegistrationToken(userID, email string) (string, error) {
+func (j *JWTService) CreateRegistrationToken(payload dto.JWTPayload) (string, error) {
 	claims := TokenPayload{
-		UserID: userID,
-		Email:  email,
+		UserID: payload.UserID,
+		Email:  payload.Email,
+		Token:  payload.Token,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.tokenRegistrationTTL)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
