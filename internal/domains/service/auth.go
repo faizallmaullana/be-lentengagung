@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/faizallmaullana/lenteng-agung/backend/database"
+	database "github.com/faizallmaullana/lenteng-agung/backend/db/db_connection"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/dto"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/repo"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"

@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/faizallmaullana/lenteng-agung/backend/database"
+	database "github.com/faizallmaullana/lenteng-agung/backend/db/db_connection"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"
 )
 

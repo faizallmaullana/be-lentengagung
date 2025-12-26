@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/faizallmaullana/lenteng-agung/backend/database"
+	database "github.com/faizallmaullana/lenteng-agung/backend/db/db_connection"
 	"github.com/faizallmaullana/lenteng-agung/backend/env"
 	"github.com/faizallmaullana/lenteng-agung/backend/router"
 )

@@ -3,9 +3,8 @@ package handler
 import (
 	"net/http"
 
+	database "github.com/faizallmaullana/lenteng-agung/backend/db/db_connection"
 	"github.com/gin-gonic/gin"
-
-	"github.com/faizallmaullana/lenteng-agung/backend/database"
 )
 
 type HealthHandler struct {

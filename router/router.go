@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/faizallmaullana/lenteng-agung/backend/database"
+	database "github.com/faizallmaullana/lenteng-agung/backend/db/db_connection"
 	handlerPkg "github.com/faizallmaullana/lenteng-agung/backend/internal/domains/handler"
 	authRepo "github.com/faizallmaullana/lenteng-agung/backend/internal/domains/repo"
 	authService "github.com/faizallmaullana/lenteng-agung/backend/internal/domains/service"
