@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/faizallmaullana/lenteng-agung/backend/internal/dto"
-	"github.com/faizallmaullana/lenteng-agung/backend/internal/service"
+	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/dto"
+	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/service"
 )
 
 type AuthHandler struct {

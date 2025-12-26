@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/faizallmaullana/lenteng-agung/backend/database"
-	handlerPkg "github.com/faizallmaullana/lenteng-agung/backend/internal/handler"
-	authRepo "github.com/faizallmaullana/lenteng-agung/backend/internal/repo"
-	authService "github.com/faizallmaullana/lenteng-agung/backend/internal/service"
+	handlerPkg "github.com/faizallmaullana/lenteng-agung/backend/internal/domains/handler"
+	authRepo "github.com/faizallmaullana/lenteng-agung/backend/internal/domains/repo"
+	authService "github.com/faizallmaullana/lenteng-agung/backend/internal/domains/service"
 )
 
 // NewRouter builds a Gin engine and wires handlers using the provided DBProvider.

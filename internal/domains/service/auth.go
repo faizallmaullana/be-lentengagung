@@ -9,10 +9,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/faizallmaullana/lenteng-agung/backend/database"
-	"github.com/faizallmaullana/lenteng-agung/backend/internal/dto"
+	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/dto"
+	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/repo"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/pkg/utils"
-	"github.com/faizallmaullana/lenteng-agung/backend/internal/repo"
 )
 
 type AuthService interface {
