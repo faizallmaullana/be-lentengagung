@@ -21,14 +21,14 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 	jwtSvc := authService.NewJWTService()
 	authSvc := authService.NewAuthService(repo, provider, jwtSvc)
 
-	handler := handlerPkg.NewAuthHandler(authSvc)
+	authHandler := handlerPkg.NewAuthHandler(authSvc)
 
 	r.StaticFile("/favicon.ico", "./static/favicon.ico")
 
 	api := r.Group("/api")
 	{
 		auth := api.Group("/auth")
-		auth.POST("/register", handler.Register())
+		auth.POST("/register", authHandler.Register)
 	}
 
 	// health check
