@@ -15,8 +15,11 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 
 	// wire auth flow
 	repo := authRepo.NewAuthRepo(provider)
-	svc := authService.NewAuthService(repo, provider)
-	handler := handlerPkg.NewAuthHandler(svc)
+
+	jwtSvc := authService.NewJWTService()
+	authSvc := authService.NewAuthService(repo, provider, jwtSvc)
+
+	handler := handlerPkg.NewAuthHandler(authSvc)
 
 	r.StaticFile("/favicon.ico", "./static/favicon.ico")
 

@@ -12,6 +12,7 @@ import (
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/dto"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/repo"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"
+	"github.com/faizallmaullana/lenteng-agung/backend/internal/pkg/mails"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/pkg/utils"
 )
 
@@ -22,10 +23,11 @@ type AuthService interface {
 type authService struct {
 	repo     repo.AuthRepo
 	provider database.DBProvider
+	jwtSvc   *JWTService
 }
 
-func NewAuthService(r repo.AuthRepo, provider database.DBProvider) AuthService {
-	return &authService{repo: r, provider: provider}
+func NewAuthService(r repo.AuthRepo, provider database.DBProvider, jwtSvc *JWTService) AuthService {
+	return &authService{repo: r, provider: provider, jwtSvc: jwtSvc}
 }
 
 func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterResponse, error) {
@@ -91,6 +93,23 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 	}
 	enc, err := utils.EncryptUUID(user.ID, key)
 	if err != nil {
+		return dto.RegisterResponse{}, err
+	}
+
+	// Generate registration token
+	regToken, err := s.jwtSvc.CreateRegistrationToken(user.ID.String(), user.Email)
+	if err != nil {
+		return dto.RegisterResponse{}, err
+	}
+
+	// Send registration token via email
+	mailSender := mails.NewMailSender()
+	mail := mails.Mailer{
+		To:      user.Email,
+		Subject: "Registration Token",
+		Body:    "Your registration token: " + regToken,
+	}
+	if err := mailSender.SendMail(mail); err != nil {
 		return dto.RegisterResponse{}, err
 	}
 
