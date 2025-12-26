@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
-
+	"os"
 	"github.com/google/uuid"
 )
 
@@ -79,4 +79,34 @@ func DecryptToUUID(encoded string, key []byte) (uuid.UUID, error) {
 	var id uuid.UUID
 	copy(id[:], pt[:16])
 	return id, nil
+}
+
+// GetEncryptKey returns the encryption key from the ENCRYPT_KEY env var.
+// It accepts either raw bytes or base64 (URL/raw) encoded string.
+func GetEncryptKey() ([]byte, error) {
+	s := os.Getenv("ENCRYPT_KEY")
+	if s == "" {
+		return nil, errors.New("ENCRYPT_KEY not set")
+	}
+
+	// try raw bytes
+	if ks := []byte(s); len(ks) == 16 || len(ks) == 24 || len(ks) == 32 {
+		return ks, nil
+	}
+
+	// try URL-safe base64
+	if b, err := base64.RawURLEncoding.DecodeString(s); err == nil {
+		if len(b) == 16 || len(b) == 24 || len(b) == 32 {
+			return b, nil
+		}
+	}
+
+	// try Std encoding
+	if b, err := base64.StdEncoding.DecodeString(s); err == nil {
+		if len(b) == 16 || len(b) == 24 || len(b) == 32 {
+			return b, nil
+		}
+	}
+
+	return nil, errors.New("ENCRYPT_KEY has invalid length or format")
 }
