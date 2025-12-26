@@ -18,6 +18,8 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 	svc := authService.NewAuthService(repo, provider)
 	handler := handlerPkg.NewAuthHandler(svc)
 
+	r.StaticFile("/favicon.ico", "./static/favicon.ico")
+
 	api := r.Group("/api")
 	{
 		api.POST("/register", handler.Register())
