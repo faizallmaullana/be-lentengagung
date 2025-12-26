@@ -6,7 +6,7 @@ import (
 
 	database "github.com/faizallmaullana/lenteng-agung/backend/db/db_connection"
 	"github.com/faizallmaullana/lenteng-agung/backend/env"
-	"github.com/faizallmaullana/lenteng-agung/backend/router"
+	"github.com/faizallmaullana/lenteng-agung/backend/internal/router"
 )
 
 func main() {
