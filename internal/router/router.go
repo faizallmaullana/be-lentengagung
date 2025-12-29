@@ -29,6 +29,7 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 	{
 		auth := api.Group("/auth")
 		auth.POST("/register", authHandler.Register)
+		auth.POST("/login", authHandler.Login)
 	}
 
 	// health check

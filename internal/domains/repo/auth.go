@@ -2,8 +2,14 @@ package repo
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"time"
+
+	"github.com/google/uuid"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	database "github.com/faizallmaullana/lenteng-agung/backend/db/db_connection"
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"
@@ -19,6 +25,7 @@ type AuthRepo interface {
 	IsEmailExists(ctx context.Context, email string) (bool, error)
 	IsNIKExists(ctx context.Context, nik string) (bool, error)
 	CreateUser(ctx context.Context, u *models.User) error
+	GetUserByNIK(ctx context.Context, nik string) (*models.User, sql.NullTime, error)
 	CreateProfile(ctx context.Context, p *models.Profile) error
 	WithTx(tx *gorm.DB) AuthRepo
 }
@@ -37,7 +44,7 @@ func (r *authRepo) IsEmailExists(ctx context.Context, email string) (bool, error
 	if r.tx != nil {
 		db = r.tx
 	}
-	if err := db.Model(&models.User{}).Where("email = ?", email).Count(&cnt).Error; err != nil {
+	if err := db.Model(&models.User{}).Where("email = ? AND approved_at IS NOT NULL", email).Count(&cnt).Error; err != nil {
 		return false, err
 	}
 	return cnt > 0, nil
@@ -49,7 +56,10 @@ func (r *authRepo) IsNIKExists(ctx context.Context, nik string) (bool, error) {
 	if r.tx != nil {
 		db = r.tx
 	}
-	if err := db.Model(&models.Profile{}).Where("nik = ?", nik).Count(&cnt).Error; err != nil {
+	if err := db.Model(&models.Profile{}).
+		Joins("JOIN users ON users.id = profiles.user_id").
+		Where("profiles.nik = ? AND users.approved_at IS NOT NULL", nik).
+		Count(&cnt).Error; err != nil {
 		return false, err
 	}
 	return cnt > 0, nil
@@ -60,7 +70,33 @@ func (r *authRepo) CreateUser(ctx context.Context, u *models.User) error {
 	if r.tx != nil {
 		db = r.tx
 	}
-	return db.Create(u).Error
+
+	// if an existing user with this email is already approved, do nothing
+	var ex struct{ ApprovedAt sql.NullTime }
+	if err := db.Table("users").Select("approved_at").Where("email = ?", u.Email).First(&ex).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+	} else {
+		if ex.ApprovedAt.Valid {
+			return nil
+		}
+	}
+
+	if err := db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "email"}},
+		DoUpdates: clause.AssignmentColumns([]string{"password_hash", "is_active"}),
+	}).Create(u).Error; err != nil {
+		return err
+	}
+
+	// ensure u.ID is populated (upsert path may not populate struct fields)
+	var id struct{ ID uuid.UUID }
+	if err := db.Table("users").Select("id").Where("email = ?", u.Email).First(&id).Error; err != nil {
+		return err
+	}
+	u.ID = id.ID
+	return nil
 }
 
 func (r *authRepo) CreateProfile(ctx context.Context, p *models.Profile) error {
@@ -68,5 +104,38 @@ func (r *authRepo) CreateProfile(ctx context.Context, p *models.Profile) error {
 	if r.tx != nil {
 		db = r.tx
 	}
-	return db.Create(p).Error
+
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "nik"}},
+		DoUpdates: clause.AssignmentColumns([]string{"user_id", "phone", "religion", "address", "work", "name"}),
+	}).Create(p).Error
+}
+
+func (r *authRepo) GetUserByNIK(ctx context.Context, nik string) (*models.User, sql.NullTime, error) {
+	db := r.provider.DB()
+	if r.tx != nil {
+		db = r.tx
+	}
+
+	var dest struct {
+		ID           uuid.UUID    `gorm:"column:id"`
+		Email        string       `gorm:"column:email"`
+		PasswordHash string       `gorm:"column:password_hash"`
+		CreatedAt    time.Time    `gorm:"column:created_at"`
+		IsActive     bool         `gorm:"column:is_active"`
+		ApprovedAt   sql.NullTime `gorm:"column:approved_at"`
+	}
+
+	if err := db.Table("users").Select("users.id, users.email, users.password_hash, users.created_at, users.is_active, users.approved_at").Joins("JOIN profiles ON profiles.user_id = users.id").Where("profiles.nik = ?", nik).Limit(1).Scan(&dest).Error; err != nil {
+		return nil, sql.NullTime{}, err
+	}
+
+	u := &models.User{
+		ID:           dest.ID,
+		Email:        dest.Email,
+		PasswordHash: dest.PasswordHash,
+		CreatedAt:    dest.CreatedAt,
+		IsActive:     dest.IsActive,
+	}
+	return u, dest.ApprovedAt, nil
 }

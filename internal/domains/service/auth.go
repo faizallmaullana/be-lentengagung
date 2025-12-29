@@ -18,6 +18,7 @@ import (
 
 type AuthService interface {
 	Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterResponse, error)
+	Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error)
 }
 
 type authService struct {
@@ -125,4 +126,44 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 	// }
 
 	return dto.RegisterResponse{ID: enc, Email: user.Email, CreatedAt: time.Now()}, nil
+}
+
+func (s *authService) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
+	nik := req.NIK.String()
+	if nik == "" || req.Password == "" {
+		return dto.LoginResponse{}, errors.New("nik and password are required")
+	}
+
+	user, approvedAt, err := s.repo.GetUserByNIK(ctx, nik)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.LoginResponse{}, errors.New("invalid credentials")
+		}
+		return dto.LoginResponse{}, err
+	}
+
+	fmt.Println("1")
+	fmt.Println(approvedAt)
+
+	if !approvedAt.Valid {
+		return dto.LoginResponse{}, errors.New("belum registrasi")
+	}
+
+	fmt.Println("2")
+	fmt.Println(user.PasswordHash)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return dto.LoginResponse{}, errors.New("invalid credentials")
+	}
+
+	fmt.Println("3")
+
+	token, err := s.jwtSvc.CreateAccessToken(user.ID.String(), user.Email)
+	if err != nil {
+		return dto.LoginResponse{}, err
+	}
+
+	fmt.Println("4")
+
+	return dto.LoginResponse{AccessToken: token, TokenType: "bearer"}, nil
 }
