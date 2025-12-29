@@ -19,6 +19,7 @@ import (
 type AuthService interface {
 	Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterResponse, error)
 	Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error)
+	ApproveRegistration(ctx context.Context, req dto.ApprovalRequest) (dto.ApprovalResponse, error)
 }
 
 type authService struct {
@@ -142,28 +143,42 @@ func (s *authService) Login(ctx context.Context, req dto.LoginRequest) (dto.Logi
 		return dto.LoginResponse{}, err
 	}
 
-	fmt.Println("1")
-	fmt.Println(approvedAt)
-
 	if !approvedAt.Valid {
 		return dto.LoginResponse{}, errors.New("belum registrasi")
 	}
 
-	fmt.Println("2")
-	fmt.Println(user.PasswordHash)
-
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 		return dto.LoginResponse{}, errors.New("invalid credentials")
 	}
-
-	fmt.Println("3")
 
 	token, err := s.jwtSvc.CreateAccessToken(user.ID.String(), user.Email)
 	if err != nil {
 		return dto.LoginResponse{}, err
 	}
 
-	fmt.Println("4")
-
 	return dto.LoginResponse{AccessToken: token, TokenType: "bearer"}, nil
+}
+
+func (s *authService) ApproveRegistration(ctx context.Context, req dto.ApprovalRequest) (dto.ApprovalResponse, error) {
+	// validate token and extract claims
+	tk, err := s.jwtSvc.ValidateToken(dto.JWTPayload{Token: req.Token})
+	if err != nil {
+		return dto.ApprovalResponse{}, err
+	}
+	claims, ok := tk.Claims.(*TokenPayload)
+	if !ok {
+		return dto.ApprovalResponse{}, errors.New("invalid token claims")
+	}
+
+	// compare payload email with provided email
+	if claims.Email != req.Email {
+		return dto.ApprovalResponse{}, errors.New("token payload does not match input")
+	}
+
+	// approve user
+	if err := s.repo.ApproveUser(ctx, claims.UserID); err != nil {
+		return dto.ApprovalResponse{}, err
+	}
+
+	return dto.ApprovalResponse{Message: "approved"}, nil
 }

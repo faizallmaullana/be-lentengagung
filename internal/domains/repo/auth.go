@@ -26,6 +26,7 @@ type AuthRepo interface {
 	IsNIKExists(ctx context.Context, nik string) (bool, error)
 	CreateUser(ctx context.Context, u *models.User) error
 	GetUserByNIK(ctx context.Context, nik string) (*models.User, sql.NullTime, error)
+	ApproveUser(ctx context.Context, userID string) error
 	CreateProfile(ctx context.Context, p *models.Profile) error
 	WithTx(tx *gorm.DB) AuthRepo
 }
@@ -138,4 +139,12 @@ func (r *authRepo) GetUserByNIK(ctx context.Context, nik string) (*models.User, 
 		IsActive:     dest.IsActive,
 	}
 	return u, dest.ApprovedAt, nil
+}
+
+func (r *authRepo) ApproveUser(ctx context.Context, userID string) error {
+	db := r.provider.DB()
+	if r.tx != nil {
+		db = r.tx
+	}
+	return db.Table("users").Where("id = ?", userID).Update("approved_at", time.Now()).Error
 }

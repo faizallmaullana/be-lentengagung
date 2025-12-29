@@ -55,3 +55,12 @@ type LoginResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 }
+
+type ApprovalRequest struct {
+	Token string `json:"token" binding:"required"`
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ApprovalResponse struct {
+	Message string `json:"message"`
+}
