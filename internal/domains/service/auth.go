@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -18,8 +17,8 @@ import (
 )
 
 type AuthService interface {
-	Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterResponse, error)
-	Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error)
+	Register(c *gin.Context, req dto.RegisterRequest) (dto.RegisterResponse, error)
+	Login(c *gin.Context, req dto.LoginRequest) (dto.LoginResponse, error)
 	ApproveRegistration(c *gin.Context, req dto.ApprovalRequest) (dto.ApprovalResponse, error)
 }
 
@@ -33,34 +32,27 @@ func NewAuthService(r repo.AuthRepo, provider database.DBProvider, jwtSvc *JWTSe
 	return &authService{repo: r, provider: provider, jwtSvc: jwtSvc}
 }
 
-func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterResponse, error) {
-	fmt.Println("DEBUG: Register called with req:", req)
+func (s *authService) Register(c *gin.Context, req dto.RegisterRequest) (dto.RegisterResponse, error) {
 	if req.NIK == "" || req.Email == "" || req.Password == "" {
-		fmt.Println("DEBUG: Missing required fields")
 		return dto.RegisterResponse{}, errors.New("nik, email and password are required")
 	}
 
 	// uniqueness checks
-	if ok, err := s.repo.IsEmailExists(ctx, req.Email); err != nil {
-		fmt.Println("DEBUG: Error checking email existence:", err)
+	if ok, err := s.repo.IsEmailExists(req.Email); err != nil {
 		return dto.RegisterResponse{}, err
 	} else if ok {
-		fmt.Println("DEBUG: Email already registered")
 		return dto.RegisterResponse{}, errors.New("email already registered")
 	}
 
-	if ok, err := s.repo.IsNIKExists(ctx, req.NIK); err != nil {
-		fmt.Println("DEBUG: Error checking NIK existence:", err)
+	if ok, err := s.repo.IsNIKExists(req.NIK); err != nil {
 		return dto.RegisterResponse{}, err
 	} else if ok {
-		fmt.Println("DEBUG: NIK already registered")
 		return dto.RegisterResponse{}, errors.New("nik already registered")
 	}
 
 	// hash password
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Println("DEBUG: Error hashing password:", err)
 		return dto.RegisterResponse{}, err
 	}
 
@@ -73,8 +65,7 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 			Email:        req.Email,
 			PasswordHash: string(hashed),
 		}
-		if err := txRepo.CreateUser(ctx, u); err != nil {
-			fmt.Println("DEBUG: Error creating user:", err)
+		if err := txRepo.CreateUser(u); err != nil {
 			return err
 		}
 
@@ -83,8 +74,7 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 			NIK:    req.NIK,
 			Phone:  req.Phone,
 		}
-		if err := txRepo.CreateProfile(ctx, p); err != nil {
-			fmt.Println("DEBUG: Error creating profile:", err)
+		if err := txRepo.CreateProfile(p); err != nil {
 			return err
 		}
 
@@ -93,25 +83,22 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 	})
 
 	if err != nil {
-		fmt.Println("DEBUG: Transaction error:", err)
 		return dto.RegisterResponse{}, err
 	}
 
 	// encrypt the user ID for response
 	key, err := utils.GetEncryptKey()
 	if err != nil {
-		fmt.Println("DEBUG: Error getting encrypt key:", err)
 		return dto.RegisterResponse{ID: user.ID.String(), Email: user.Email, CreatedAt: user.CreatedAt}, nil
 	}
 	enc, err := utils.EncryptUUID(user.ID, key)
 	if err != nil {
-		fmt.Println("DEBUG: Error encrypting UUID:", err)
 		return dto.RegisterResponse{}, err
 	}
 
 	// Generate registration token
 	token := utils.RandomString(6)
-	fmt.Println("DEBUG: Generated random token:", token)
+	fmt.Println("DEBUG: registration token:", token)
 
 	payload := dto.JWTPayload{
 		UserID: user.ID.String(),
@@ -121,11 +108,8 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 
 	regToken, err := s.jwtSvc.CreateRegistrationToken(payload)
 	if err != nil {
-		fmt.Println("DEBUG: Error creating registration token:", err)
 		return dto.RegisterResponse{}, err
 	}
-
-	fmt.Println("DEBUG: Registration token:", regToken)
 
 	// Uncomment to send email
 	// mailSender := mails.NewMailSender()
@@ -139,16 +123,16 @@ func (s *authService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 	// 	return dto.RegisterResponse{}, err
 	// }
 
-	return dto.RegisterResponse{ID: enc, Email: user.Email, CreatedAt: time.Now()}, nil
+	return dto.RegisterResponse{ID: enc, Email: user.Email, CreatedAt: time.Now(), RegistrationToken: regToken}, nil
 }
 
-func (s *authService) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
+func (s *authService) Login(c *gin.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
 	nik := req.NIK.String()
 	if nik == "" || req.Password == "" {
 		return dto.LoginResponse{}, errors.New("nik and password are required")
 	}
 
-	user, approvedAt, err := s.repo.GetUserByNIK(ctx, nik)
+	user, approvedAt, err := s.repo.GetUserByNIK(nik)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return dto.LoginResponse{}, errors.New("invalid credentials")
@@ -173,10 +157,42 @@ func (s *authService) Login(ctx context.Context, req dto.LoginRequest) (dto.Logi
 }
 
 func (s *authService) ApproveRegistration(c *gin.Context, req dto.ApprovalRequest) (dto.ApprovalResponse, error) {
-	fmt.Println(req)
 
-	token, ok := c.Get("id_user")
-	fmt.Println("DEBUG: Retrieved token from context:", token, "ok:", ok)
+	// ==============================
+	// validate token from context and request
+	token, ok := c.Get("token")
+	if !ok {
+		return dto.ApprovalResponse{}, errors.New("unauthorized")
+	}
+	if token.(string) == "" || req.Token == "" {
+		fmt.Println("zero value token")
+		return dto.ApprovalResponse{}, errors.New("zero value token")
+	}
+	fmt.Println(token.(string))
+	fmt.Println(req.Token)
+	if token.(string) != req.Token {
+		fmt.Println("invalid token")
+		return dto.ApprovalResponse{}, errors.New("invalid token")
+	}
+
+	fmt.Println(token)
+	fmt.Println(token)
+	// ===
+
+	// ==============================
+	// get id user
+	user, ok := c.Get("id_user")
+	if !ok {
+		return dto.ApprovalResponse{}, errors.New("unauthorized")
+	}
+	// ===
+
+	// ==============================
+	// main functionality: approve user
+	if err := s.repo.ApproveUser(user.(string)); err != nil {
+		return dto.ApprovalResponse{}, err
+	}
+	// ===
 
 	return dto.ApprovalResponse{Message: "approved"}, nil
 }

@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -22,12 +21,12 @@ type authRepo struct {
 
 // AuthRepo defines low-level data operations only.
 type AuthRepo interface {
-	IsEmailExists(ctx context.Context, email string) (bool, error)
-	IsNIKExists(ctx context.Context, nik string) (bool, error)
-	CreateUser(ctx context.Context, u *models.User) error
-	GetUserByNIK(ctx context.Context, nik string) (*models.User, sql.NullTime, error)
-	ApproveUser(ctx context.Context, userID string) error
-	CreateProfile(ctx context.Context, p *models.Profile) error
+	IsEmailExists(email string) (bool, error)
+	IsNIKExists(nik string) (bool, error)
+	CreateUser(u *models.User) error
+	GetUserByNIK(nik string) (*models.User, sql.NullTime, error)
+	ApproveUser(userID string) error
+	CreateProfile(p *models.Profile) error
 	WithTx(tx *gorm.DB) AuthRepo
 }
 
@@ -39,7 +38,7 @@ func (r *authRepo) WithTx(tx *gorm.DB) AuthRepo {
 	return &authRepo{provider: r.provider, tx: tx}
 }
 
-func (r *authRepo) IsEmailExists(ctx context.Context, email string) (bool, error) {
+func (r *authRepo) IsEmailExists(email string) (bool, error) {
 	var cnt int64
 	db := r.provider.DB()
 	if r.tx != nil {
@@ -51,7 +50,7 @@ func (r *authRepo) IsEmailExists(ctx context.Context, email string) (bool, error
 	return cnt > 0, nil
 }
 
-func (r *authRepo) IsNIKExists(ctx context.Context, nik string) (bool, error) {
+func (r *authRepo) IsNIKExists(nik string) (bool, error) {
 	var cnt int64
 	db := r.provider.DB()
 	if r.tx != nil {
@@ -66,7 +65,7 @@ func (r *authRepo) IsNIKExists(ctx context.Context, nik string) (bool, error) {
 	return cnt > 0, nil
 }
 
-func (r *authRepo) CreateUser(ctx context.Context, u *models.User) error {
+func (r *authRepo) CreateUser(u *models.User) error {
 	db := r.provider.DB()
 	if r.tx != nil {
 		db = r.tx
@@ -100,7 +99,7 @@ func (r *authRepo) CreateUser(ctx context.Context, u *models.User) error {
 	return nil
 }
 
-func (r *authRepo) CreateProfile(ctx context.Context, p *models.Profile) error {
+func (r *authRepo) CreateProfile(p *models.Profile) error {
 	db := r.provider.DB()
 	if r.tx != nil {
 		db = r.tx
@@ -112,7 +111,7 @@ func (r *authRepo) CreateProfile(ctx context.Context, p *models.Profile) error {
 	}).Create(p).Error
 }
 
-func (r *authRepo) GetUserByNIK(ctx context.Context, nik string) (*models.User, sql.NullTime, error) {
+func (r *authRepo) GetUserByNIK(nik string) (*models.User, sql.NullTime, error) {
 	db := r.provider.DB()
 	if r.tx != nil {
 		db = r.tx
@@ -141,7 +140,7 @@ func (r *authRepo) GetUserByNIK(ctx context.Context, nik string) (*models.User, 
 	return u, dest.ApprovedAt, nil
 }
 
-func (r *authRepo) ApproveUser(ctx context.Context, userID string) error {
+func (r *authRepo) ApproveUser(userID string) error {
 	db := r.provider.DB()
 	if r.tx != nil {
 		db = r.tx

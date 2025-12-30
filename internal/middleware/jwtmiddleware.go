@@ -59,7 +59,7 @@ func JWTMiddlewareWithToken(jwtService *service.JWTService) gin.HandlerFunc {
 			return
 		}
 		c.Set("id_user", claims.UserID)
-		c.Set("token", tokenString)
+		c.Set("token", claims.Token)
 		c.Next()
 	}
 }

@@ -15,9 +15,10 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	ID        string    `json:"id"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
+	ID                string    `json:"id"`
+	Email             string    `json:"email"`
+	CreatedAt         time.Time `json:"created_at"`
+	RegistrationToken string    `json:"registration_token,omitempty"`
 }
 
 // StringOrNumber accepts either a JSON string or number and stores as string
@@ -61,5 +62,7 @@ type ApprovalRequest struct {
 }
 
 type ApprovalResponse struct {
-	Message string `json:"message"`
+	Message      string `json:"message"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
