@@ -16,6 +16,7 @@ type User struct {
 	PasswordHash string    `gorm:"not null" json:"-"`
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`
 	IsActive     bool      `gorm:"default:true" json:"is_active"`
+	Role         string    `gorm:"default:'masyarakat'" json:"role"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {

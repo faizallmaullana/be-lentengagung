@@ -25,8 +25,10 @@ type AuthRepo interface {
 	IsNIKExists(nik string) (bool, error)
 	CreateUser(u *models.User) error
 	GetUserByNIK(nik string) (*models.User, sql.NullTime, error)
+	GetUserByID(userID string) (*models.User, sql.NullTime, error)
 	ApproveUser(userID string) error
 	CreateProfile(p *models.Profile) error
+	GetProfileByUserID(userID string) (*models.Profile, error)
 	WithTx(tx *gorm.DB) AuthRepo
 }
 
@@ -138,6 +140,46 @@ func (r *authRepo) GetUserByNIK(nik string) (*models.User, sql.NullTime, error) 
 		IsActive:     dest.IsActive,
 	}
 	return u, dest.ApprovedAt, nil
+}
+
+func (r *authRepo) GetUserByID(userID string) (*models.User, sql.NullTime, error) {
+	db := r.provider.DB()
+	if r.tx != nil {
+		db = r.tx
+	}
+
+	var dest struct {
+		ID         uuid.UUID    `gorm:"column:id"`
+		Email      string       `gorm:"column:email"`
+		CreatedAt  time.Time    `gorm:"column:created_at"`
+		IsActive   bool         `gorm:"column:is_active"`
+		ApprovedAt sql.NullTime `gorm:"column:approved_at"`
+	}
+
+	if err := db.Table("users").Select("id, email, created_at, is_active, approved_at").Where("users.id = ?", userID).Limit(1).Scan(&dest).Error; err != nil {
+		return nil, sql.NullTime{}, err
+	}
+
+	u := &models.User{
+		ID:        dest.ID,
+		Email:     dest.Email,
+		CreatedAt: dest.CreatedAt,
+		IsActive:  dest.IsActive,
+	}
+	return u, dest.ApprovedAt, nil
+}
+
+func (r *authRepo) GetProfileByUserID(userID string) (*models.Profile, error) {
+	db := r.provider.DB()
+	if r.tx != nil {
+		db = r.tx
+	}
+
+	var p models.Profile
+	if err := db.Table("profiles").Where("user_id = ?", userID).Limit(1).Scan(&p).Error; err != nil {
+		return nil, err
+	}
+	return &p, nil
 }
 
 func (r *authRepo) ApproveUser(userID string) error {

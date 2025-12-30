@@ -153,7 +153,12 @@ func (s *authService) Login(c *gin.Context, req dto.LoginRequest) (dto.LoginResp
 		return dto.LoginResponse{}, err
 	}
 
-	return dto.LoginResponse{AccessToken: token, TokenType: "bearer"}, nil
+	p, err := s.repo.GetProfileByUserID(user.ID.String())
+	if err != nil {
+		return dto.LoginResponse{}, err
+	}
+
+	return dto.LoginResponse{AccessToken: token, TokenType: "bearer", User: user, Profile: p}, nil
 }
 
 func (s *authService) ApproveRegistration(c *gin.Context, req dto.ApprovalRequest) (dto.ApprovalResponse, error) {
@@ -189,10 +194,20 @@ func (s *authService) ApproveRegistration(c *gin.Context, req dto.ApprovalReques
 
 	// ==============================
 	// main functionality: approve user
-	if err := s.repo.ApproveUser(user.(string)); err != nil {
+	userID := user.(string)
+	if err := s.repo.ApproveUser(userID); err != nil {
 		return dto.ApprovalResponse{}, err
 	}
-	// ===
 
-	return dto.ApprovalResponse{Message: "approved"}, nil
+	// fetch updated user and profile to return
+	u, _, err := s.repo.GetUserByID(userID)
+	if err != nil {
+		return dto.ApprovalResponse{}, err
+	}
+	p, err := s.repo.GetProfileByUserID(userID)
+	if err != nil {
+		return dto.ApprovalResponse{}, err
+	}
+
+	return dto.ApprovalResponse{Message: "approved", User: *u, Profile: *p}, nil
 }

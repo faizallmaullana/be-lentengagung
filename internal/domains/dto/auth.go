@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"
 )
 
 type RegisterRequest struct {
@@ -53,8 +55,10 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
+	AccessToken string          `json:"access_token"`
+	TokenType   string          `json:"token_type"`
+	User        *models.User    `json:"user,omitempty"`
+	Profile     *models.Profile `json:"profile,omitempty"`
 }
 
 type ApprovalRequest struct {
@@ -62,7 +66,9 @@ type ApprovalRequest struct {
 }
 
 type ApprovalResponse struct {
-	Message      string `json:"message"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	Message      string         `json:"message"`
+	AccessToken  string         `json:"access_token"`
+	RefreshToken string         `json:"refresh_token"`
+	User         models.User    `json:"user,omitempty"`
+	Profile      models.Profile `json:"profile,omitempty"`
 }
