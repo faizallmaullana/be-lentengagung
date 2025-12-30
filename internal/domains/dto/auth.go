@@ -58,7 +58,6 @@ type LoginResponse struct {
 
 type ApprovalRequest struct {
 	Token string `json:"token" binding:"required"`
-	Email string `json:"email" binding:"required,email"`
 }
 
 type ApprovalResponse struct {

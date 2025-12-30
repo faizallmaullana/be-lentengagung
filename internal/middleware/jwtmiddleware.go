@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -36,11 +37,16 @@ func JWTMiddleware(jwtService *service.JWTService) gin.HandlerFunc {
 // JWTMiddlewareWithToken saves user ID and token to Gin context (for registration)
 func JWTMiddlewareWithToken(jwtService *service.JWTService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println("middleware")
+
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
 			return
 		}
+
+		fmt.Println(authHeader)
+
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		token, err := jwtService.ValidateToken(dto.JWTPayload{Token: tokenString})
 		if err != nil || !token.Valid {

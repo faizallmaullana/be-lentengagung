@@ -30,7 +30,10 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 		auth := api.Group("/auth")
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
-		auth.POST("/approve", authHandler.Approval)
+
+		approval := auth.Group("/approve")
+		approval.Use(middleware.JWTMiddlewareWithToken(jwtSvc))
+		approval.POST("", authHandler.Approval)
 	}
 
 	// health check

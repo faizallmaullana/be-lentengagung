@@ -11,7 +11,6 @@
 ```json
 {
   "token": "<registration_jwt>",
-  "email": "user@example.com"
 }
 ```
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +39,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	resp, err := h.service.Login(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
@@ -54,7 +54,9 @@ func (h *AuthHandler) Approval(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.ApproveRegistration(c.Request.Context(), req)
+	fmt.Println(req)
+
+	resp, err := h.service.ApproveRegistration(c, req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
