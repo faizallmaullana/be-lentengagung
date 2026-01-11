@@ -28,3 +28,11 @@ func (s *FormService) GetFormByUserID(userID string) (*models.RegisterPernyataan
 	}
 	return models, nil
 }
+
+func (s *FormService) GetAllForms(userID string) ([]models.RegisterPernyataan, error) {
+	models, err := s.repo.GetAllRequests(userID)
+	if err != nil {
+		return nil, err
+	}
+	return models, nil
+}

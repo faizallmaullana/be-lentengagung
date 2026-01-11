@@ -54,3 +54,26 @@ func (r *FormRepo) GetRequestByUserID(userID string) (*models.RegisterPernyataan
 	}
 	return &models, nil
 }
+
+func (r *FormRepo) GetAllRequests(id_user string) ([]models.RegisterPernyataan, error) {
+	users := &models.User{}
+	if err := r.db.Where("id_user = ?", id_user).First(users).Error; err != nil {
+		return nil, err
+	}
+
+	var models []models.RegisterPernyataan
+
+	// If the user is admin or superadmin, return all requests
+	if users.Role == "admin" || users.Role == "superadmin" {
+		if err := r.db.Find(&models).Error; err != nil {
+			return nil, err
+		}
+		return models, nil
+	}
+
+	// Otherwise return only requests that belong to the user
+	if err := r.db.Where("id_user = ?", id_user).Find(&models).Error; err != nil {
+		return nil, err
+	}
+	return models, nil
+}

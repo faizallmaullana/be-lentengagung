@@ -42,3 +42,18 @@ func (h *FormHandler) GetFormByUserID(c *gin.Context) {
 	}
 	c.JSON(200, models)
 }
+
+func (h *FormHandler) GetAllForms(c *gin.Context) {
+	userID, ok := c.Get("id_user")
+	if !ok {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	models, err := h.svc.GetAllForms(userID.(string))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, models)
+}
