@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/models"
@@ -46,6 +47,7 @@ func (r *FormRepo) CreateRequest(userID string) (*models.RegisterPernyataan, err
 }
 
 func (r *FormRepo) GetRequestByUserID(userID string) (*models.RegisterPernyataan, error) {
+	fmt.Println(userID)
 	var models models.RegisterPernyataan
 	if err := r.db.Where("id_user = ?", userID).First(&models).Error; err != nil {
 		return nil, err
