@@ -43,7 +43,7 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 
 	form := all.Group("/form")
 	form.POST("/create", formHandler.StartCreateForm)
-	form.GET("", formHandler.GetFormByUserID)
+	form.GET("/", formHandler.GetFormByUserID)
 	form.GET("/all", formHandler.GetAllForms)
 
 	// health check

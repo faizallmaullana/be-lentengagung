@@ -57,7 +57,7 @@ func (r *FormRepo) GetRequestByUserID(userID string) (*models.RegisterPernyataan
 
 func (r *FormRepo) GetAllRequests(id_user string) ([]models.RegisterPernyataan, error) {
 	users := &models.User{}
-	if err := r.db.Where("id_user = ?", id_user).First(users).Error; err != nil {
+	if err := r.db.Where("id = ?", id_user).First(users).Error; err != nil {
 		return nil, err
 	}
 
