@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/faizallmaullana/lenteng-agung/backend/internal/domains/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type FormHandler struct {
@@ -21,7 +20,7 @@ func (h *FormHandler) StartCreateForm(c *gin.Context) {
 		return
 	}
 
-	models, err := h.svc.CreateForm(userID.(uuid.UUID))
+	models, err := h.svc.CreateForm(userID.(string))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

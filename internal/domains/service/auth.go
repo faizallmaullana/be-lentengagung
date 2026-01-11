@@ -86,22 +86,22 @@ func (s *authService) Register(c *gin.Context, req dto.RegisterRequest) (dto.Reg
 		return dto.RegisterResponse{}, err
 	}
 
-	// encrypt the user ID for response
-	key, err := utils.GetEncryptKey()
-	if err != nil {
-		return dto.RegisterResponse{ID: user.ID.String(), Email: user.Email, CreatedAt: user.CreatedAt}, nil
-	}
-	enc, err := utils.EncryptUUID(user.ID, key)
-	if err != nil {
-		return dto.RegisterResponse{}, err
-	}
+	// // encrypt the user ID for response
+	// key, err := utils.GetEncryptKey()
+	// if err != nil {
+	// 	return dto.RegisterResponse{ID: user.ID.String(), Email: user.Email, CreatedAt: user.CreatedAt}, nil
+	// }
+	// enc, err := utils.EncryptUUID(user.ID, key)
+	// if err != nil {
+	// 	return dto.RegisterResponse{}, err
+	// }
 
 	// Generate registration token
 	token := utils.RandomString(6)
 	fmt.Println("DEBUG: registration token:", token)
 
 	payload := dto.JWTPayload{
-		UserID: user.ID.String(),
+		UserID: user.ID,
 		Email:  user.Email,
 		Token:  token,
 	}
@@ -123,7 +123,7 @@ func (s *authService) Register(c *gin.Context, req dto.RegisterRequest) (dto.Reg
 	// 	return dto.RegisterResponse{}, err
 	// }
 
-	return dto.RegisterResponse{ID: enc, Email: user.Email, CreatedAt: time.Now(), RegistrationToken: regToken}, nil
+	return dto.RegisterResponse{ID: user.ID, Email: user.Email, CreatedAt: time.Now(), RegistrationToken: regToken}, nil
 }
 
 func (s *authService) Login(c *gin.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
@@ -148,12 +148,12 @@ func (s *authService) Login(c *gin.Context, req dto.LoginRequest) (dto.LoginResp
 		return dto.LoginResponse{}, errors.New("invalid credentials")
 	}
 
-	token, err := s.jwtSvc.CreateAccessToken(user.ID.String(), user.Email)
+	token, err := s.jwtSvc.CreateAccessToken(user.ID, user.Email)
 	if err != nil {
 		return dto.LoginResponse{}, err
 	}
 
-	p, err := s.repo.GetProfileByUserID(user.ID.String())
+	p, err := s.repo.GetProfileByUserID(user.ID)
 	if err != nil {
 		return dto.LoginResponse{}, err
 	}

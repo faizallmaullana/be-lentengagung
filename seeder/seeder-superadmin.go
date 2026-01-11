@@ -69,7 +69,7 @@ func main() {
 		log.Fatalf("failed to create profile: %v", err)
 	}
 
-	if err := r.ApproveUser(u.ID.String()); err != nil {
+	if err := r.ApproveUser(u.ID); err != nil {
 		log.Fatalf("failed to approve user: %v", err)
 	}
 

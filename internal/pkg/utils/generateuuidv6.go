@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func GenerateUUIDV6() uuid.UUID {
+func GenerateUUIDV6() string {
 	b := make([]byte, 16)
 
 	// timestamp in microseconds
@@ -36,5 +36,5 @@ func GenerateUUIDV6() uuid.UUID {
 	b[8] = (b[8] & 0x3f) | 0x80
 
 	u, _ := uuid.FromBytes(b)
-	return u
+	return u.String()
 }

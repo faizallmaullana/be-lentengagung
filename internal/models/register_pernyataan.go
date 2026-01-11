@@ -2,16 +2,14 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type RegisterPernyataan struct {
-	ID             uuid.UUID `gorm:"primaryKey; column:id" json:"id"`
-	KodeRegistrasi string    `json:"kode_registrasi" gorm:"column:kode_registrasi"`
-	Status         string    `json:"status" gorm:"column:status"`
+	ID             string `gorm:"primaryKey; column:id" json:"id"`
+	KodeRegistrasi string `json:"kode_registrasi" gorm:"column:kode_registrasi"`
+	Status         string `json:"status" gorm:"column:status"`
 
-	IDUser         uuid.UUID  `json:"id_user" gorm:"column:id_user"`
+	IDUser         string     `json:"id_user" gorm:"column:id_user"`
 	Pewaris        Pewaris    `gorm:"foreignKey:IdRegisterPernyataan;references:ID" json:"pewaris"`
 	Dokumen        []Dokumen  `gorm:"foreignKey:IdRegisterPernyataan;references:ID" json:"dokumen"`
 	ChatPernyataan []ChatMain `gorm:"foreignKey:IDRegisterPernyataan;references:ID" json:"chat_pernyataan"`

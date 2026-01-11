@@ -5,8 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/google/uuid"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -93,7 +91,7 @@ func (r *authRepo) CreateUser(u *models.User) error {
 	}
 
 	// ensure u.ID is populated (upsert path may not populate struct fields)
-	var id struct{ ID uuid.UUID }
+	var id struct{ ID string }
 	if err := db.Table("users").Select("id").Where("email = ?", u.Email).First(&id).Error; err != nil {
 		return err
 	}
@@ -138,7 +136,7 @@ func (r *authRepo) GetUserByID(userID string) (*models.User, sql.NullTime, error
 	}
 
 	var dest struct {
-		ID         uuid.UUID    `gorm:"column:id"`
+		ID         string       `gorm:"column:id"`
 		Email      string       `gorm:"column:email"`
 		CreatedAt  time.Time    `gorm:"column:created_at"`
 		IsActive   bool         `gorm:"column:is_active"`

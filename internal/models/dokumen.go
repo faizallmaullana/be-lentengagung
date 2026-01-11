@@ -2,16 +2,14 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Dokumen struct {
-	ID       uuid.UUID `gorm:"primaryKey; column:id" json:"id"`
-	Name     string    `json:"name" gorm:"column:name"`
-	FilePath string    `json:"file_path" gorm:"column:file_path"`
+	ID       string `gorm:"primaryKey; column:id" json:"id"`
+	Name     string `json:"name" gorm:"column:name"`
+	FilePath string `json:"file_path" gorm:"column:file_path"`
 
-	IdRegisterPernyataan uuid.UUID `json:"id_register_pernyataan" gorm:"column:id_register_pernyataan"`
+	IdRegisterPernyataan string    `json:"id_register_pernyataan" gorm:"column:id_register_pernyataan"`
 	ApprovedAt           time.Time `json:"approved_at" gorm:"column:approved_at"`
 
 	ChatDokumen []ChatDocument `gorm:"foreignKey:IdDocument;references:ID" json:"chat_dokumen"`
