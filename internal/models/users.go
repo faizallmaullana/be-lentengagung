@@ -20,7 +20,7 @@ type User struct {
 	ApprovedAt   time.Time `gorm:"column:approved_at" json:"approved_at"`
 	Role         string    `gorm:"default:'masyarakat';column:role" json:"role"`
 
-	Profile Profile `gorm:"foreignKey:UserID;references:ID;omitempty" json:"profile"`
+	Profile Profile `gorm:"foreignKey:UserID;references:ID" json:"profile"`
 }
 
 func (User) TableName() string {

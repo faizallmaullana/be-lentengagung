@@ -31,8 +31,8 @@ type PasanganPewaris struct {
 	KeteranganKematian string `json:"keterangan_kematian" gorm:"column:keterangan_kematian"`
 
 	IdPewaris           uuid.UUID             `json:"id_pewaris" gorm:"column:id_pewaris"`
-	Anak                []AhliWaris           `gorm:"foreignKey:IdPasanganPewaris;references:ID;omitempty" json:"anak_pewaris"`
-	ChatPasanganPewaris []ChatPasanganPewaris `gorm:"foreignKey:IdPasanganPewaris;references:ID;omitempty" json:"chat_pasangan_pewaris"`
+	Anak                []AhliWaris           `gorm:"foreignKey:IdPasanganPewaris;references:ID" json:"anak_pewaris"`
+	ChatPasanganPewaris []ChatPasanganPewaris `gorm:"foreignKey:IdPasanganPewaris;references:ID" json:"chat_pasangan_pewaris"`
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }

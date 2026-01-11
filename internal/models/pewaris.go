@@ -28,8 +28,10 @@ type Pewaris struct {
 	NoAktaKematian     string `json:"no_akta_kematian" gorm:"column:no_akta_kematian"`
 	KeteranganKematian string `json:"keterangan_kematian" gorm:"column:keterangan_kematian"`
 
-	PasanganPewaris []PasanganPewaris `gorm:"foreignKey:IdPewaris;references:ID;omitempty" json:"pasangan_pewaris"`
-	ChatPewaris     []ChatPewaris     `gorm:"foreignKey:IdPewaris;references:ID;omitempty" json:"chat_pewaris"`
+	IdRegisterPernyataan uuid.UUID `json:"id_register_pernyataan" gorm:"column:id_register_pernyataan"`
+
+	PasanganPewaris []PasanganPewaris `gorm:"foreignKey:IdPewaris;references:ID" json:"pasangan_pewaris"`
+	ChatPewaris     []ChatPewaris     `gorm:"foreignKey:IdPewaris;references:ID" json:"chat_pewaris"`
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }

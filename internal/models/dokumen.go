@@ -14,7 +14,7 @@ type Dokumen struct {
 	IdRegisterPernyataan uuid.UUID `json:"id_register_pernyataan" gorm:"column:id_register_pernyataan"`
 	ApprovedAt           time.Time `json:"approved_at" gorm:"column:approved_at"`
 
-	ChatDokumen []ChatDocument `gorm:"foreignKey:IdDokumen;references:ID;omitempty" json:"chat_dokumen"`
+	ChatDokumen []ChatDocument `gorm:"foreignKey:IdDocument;references:ID" json:"chat_dokumen"`
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }
