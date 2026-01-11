@@ -8,15 +8,15 @@ import (
 )
 
 type Profile struct {
-	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"-"`
+	ID          uuid.UUID `gorm:"type:uuid;primaryKey;column:id" json:"-"`
 	EncryptedID string    `gorm:"-" json:"id,omitempty"`
-	UserID      uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
-	NIK         string    `gorm:"unique;not null" json:"nik"`
-	Phone       string    `json:"phone"`
-	Religion    string    `json:"religion"`
-	Address     string    `json:"address"`
-	Work        string    `json:"work"`
-	Name        string    `json:"name"`
+	UserID      uuid.UUID `gorm:"type:uuid;not null;column:user_id" json:"user_id"`
+	NIK         string    `gorm:"unique;not null;column:nik" json:"nik"`
+	Phone       string    `gorm:"column:phone" json:"phone"`
+	Religion    string    `gorm:"column:religion" json:"religion"`
+	Address     string    `gorm:"column:address" json:"address"`
+	Work        string    `gorm:"column:work" json:"work"`
+	Name        string    `gorm:"column:name" json:"name"`
 }
 
 func (p *Profile) BeforeCreate(tx *gorm.DB) (err error) {
