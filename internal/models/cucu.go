@@ -30,7 +30,8 @@ type Cucu struct {
 	NoAktaKematian     string `json:"no_akta_kematian" gorm:"column:no_akta_kematian"`
 	KeteranganKematian string `json:"keterangan_kematian" gorm:"column:keterangan_kematian"`
 
-	IdPasanganAhliWaris uuid.UUID `json:"id_pasangan_ahli_waris" gorm:"column:id_pasangan_ahli_waris"`
+	IdPasanganAhliWaris uuid.UUID  `json:"id_pasangan_ahli_waris" gorm:"column:id_pasangan_ahli_waris"`
+	ChatCucu            []ChatCucu `gorm:"foreignKey:IdCucu;references:ID;omitempty" json:"chat_cucu"`
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }

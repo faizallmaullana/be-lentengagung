@@ -11,9 +11,10 @@ type RegisterPernyataan struct {
 	KodeRegistrasi string    `json:"kode_registrasi" gorm:"column:kode_registrasi"`
 	Status         string    `json:"status" gorm:"column:status"`
 
-	IDUser  uuid.UUID `json:"id_user" gorm:"column:id_user"`
-	Pewaris Pewaris   `gorm:"foreignKey:IdRegisterPernyataan;references:ID;omitempty" json:"pewaris"`
-	Dokumen []Dokumen `gorm:"foreignKey:IdRegisterPernyataan;references:ID;omitempty" json:"dokumen"`
+	IDUser         uuid.UUID  `json:"id_user" gorm:"column:id_user"`
+	Pewaris        Pewaris    `gorm:"foreignKey:IdRegisterPernyataan;references:ID;omitempty" json:"pewaris"`
+	Dokumen        []Dokumen  `gorm:"foreignKey:IdRegisterPernyataan;references:ID;omitempty" json:"dokumen"`
+	ChatPernyataan []ChatMain `gorm:"foreignKey:IdRegisterPernyataan;references:ID;omitempty" json:"chat_pernyataan"`
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }

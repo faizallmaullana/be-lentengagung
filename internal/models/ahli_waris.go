@@ -30,7 +30,9 @@ type AhliWaris struct {
 	UrutanAhliWaris int8 `json:"urutan_ahli_waris" gorm:"column:urutan_ahli_waris"`
 	IsDead          bool `json:"is_dead" gorm:"column:is_dead"`
 
-	IdPasanganPewaris uuid.UUID `json:"id_pasangan_pewaris" gorm:"column:id_pasangan_pewaris"`
+	IdPasanganPewaris uuid.UUID           `json:"id_pasangan_pewaris" gorm:"column:id_pasangan_pewaris"`
+	PasanganAhliWaris []PasanganAhliWaris `gorm:"foreignKey:IdPasanganAhliWaris;references:ID;omitempty" json:"pasangan_ahli_waris"`
+	ChatAhliWaris     []ChatAhliWaris     `gorm:"foreignKey:IdAhliWaris;references:ID;omitempty" json:"chat_ahli_waris"`
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }

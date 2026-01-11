@@ -12,3 +12,7 @@ type FileUpload struct {
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }
+
+func (FileUpload) TableName() string {
+	return "file_uploads"
+}

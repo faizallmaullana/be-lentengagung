@@ -29,6 +29,7 @@ type Pewaris struct {
 	KeteranganKematian string `json:"keterangan_kematian" gorm:"column:keterangan_kematian"`
 
 	PasanganPewaris []PasanganPewaris `gorm:"foreignKey:IdPewaris;references:ID;omitempty" json:"pasangan_pewaris"`
+	ChatPewaris     []ChatPewaris     `gorm:"foreignKey:IdPewaris;references:ID;omitempty" json:"chat_pewaris"`
 
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 }
