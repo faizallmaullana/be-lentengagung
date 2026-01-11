@@ -114,32 +114,21 @@ func (r *authRepo) CreateProfile(p *models.Profile) error {
 }
 
 func (r *authRepo) GetUserByNIK(nik string) (*models.User, sql.NullTime, error) {
+	users := &models.User{}
 	db := r.provider.DB()
 	if r.tx != nil {
 		db = r.tx
 	}
-
-	var dest struct {
-		ID           uuid.UUID    `gorm:"column:id"`
-		Email        string       `gorm:"column:email"`
-		PasswordHash string       `gorm:"column:password_hash"`
-		CreatedAt    time.Time    `gorm:"column:created_at"`
-		IsActive     bool         `gorm:"column:is_active"`
-		ApprovedAt   sql.NullTime `gorm:"column:approved_at"`
-	}
-
-	if err := db.Table("users").Select("users.id, users.email, users.password_hash, users.created_at, users.is_active, users.approved_at").Joins("JOIN profiles ON profiles.user_id = users.id").Where("profiles.nik = ?", nik).Limit(1).Scan(&dest).Error; err != nil {
+	if err := db.Joins("JOIN profiles ON profiles.user_id = users.id").Preload("Profile").Where("profiles.nik = ?", nik).First(users).Error; err != nil {
 		return nil, sql.NullTime{}, err
 	}
 
-	u := &models.User{
-		ID:           dest.ID,
-		Email:        dest.Email,
-		PasswordHash: dest.PasswordHash,
-		CreatedAt:    dest.CreatedAt,
-		IsActive:     dest.IsActive,
+	approvedAt := sql.NullTime{}
+	if !users.ApprovedAt.IsZero() {
+		approvedAt = sql.NullTime{Time: users.ApprovedAt, Valid: true}
 	}
-	return u, dest.ApprovedAt, nil
+
+	return users, approvedAt, nil
 }
 
 func (r *authRepo) GetUserByID(userID string) (*models.User, sql.NullTime, error) {
