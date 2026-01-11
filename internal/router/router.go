@@ -46,6 +46,14 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 	form.GET("/", formHandler.GetFormByUserID)
 	form.GET("/all", formHandler.GetAllForms)
 
+	fileUpload := all.Group("/upload")
+	uploadRepo := authRepo.NewFileUploadRepo(provider.DB())
+	uploadSvc := authService.NewUploadService(*uploadRepo)
+	uploadHandler := handlerPkg.NewUploadHandler(*uploadSvc)
+
+	fileUpload.POST("/:file_type", uploadHandler.UploadFile)
+	fileUpload.POST("/ocr/:file_type", uploadHandler.OcrExtract)
+
 	// health check
 	health := handlerPkg.NewHealthHandler(provider)
 	r.GET("/health", health.Health())
