@@ -40,8 +40,10 @@ func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 	formRepo := authRepo.NewFormRepo(provider.DB())
 	formSvc := authService.NewFormService(*formRepo)
 	formHandler := handlerPkg.NewFormHandler(*formSvc)
+
 	form := all.Group("/form")
 	form.POST("/create", formHandler.StartCreateForm)
+	form.GET("/", formHandler.GetFormByUserID)
 
 	// health check
 	health := handlerPkg.NewHealthHandler(provider)

@@ -20,3 +20,11 @@ func (s *FormService) CreateForm(userID string) (*models.RegisterPernyataan, err
 	}
 	return models, nil
 }
+
+func (s *FormService) GetFormByUserID(userID string) (*models.RegisterPernyataan, error) {
+	models, err := s.repo.GetRequestByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+	return models, nil
+}
