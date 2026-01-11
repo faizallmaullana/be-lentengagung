@@ -13,28 +13,35 @@ import (
 // NewRouter builds a Gin engine and wires handlers using the provided DBProvider.
 func NewRouter(provider database.DBProvider) (*gin.Engine, error) {
 	r := gin.Default()
-	r.Use(middleware.CORSMiddleware())
-
-	// wire auth flow
-	repo := authRepo.NewAuthRepo(provider)
-
-	jwtSvc := authService.NewJWTService()
-	authSvc := authService.NewAuthService(repo, provider, jwtSvc)
-
-	authHandler := handlerPkg.NewAuthHandler(authSvc)
-
 	r.StaticFile("/favicon.ico", "./static/favicon.ico")
 
-	api := r.Group("/api")
-	{
-		auth := api.Group("/auth")
-		auth.POST("/register", authHandler.Register)
-		auth.POST("/login", authHandler.Login)
+	r.Use(middleware.CORSMiddleware())
 
-		approval := auth.Group("/approve")
-		approval.Use(middleware.JWTMiddlewareWithToken(jwtSvc))
-		approval.POST("", authHandler.Approval)
-	}
+	jwtSvc := authService.NewJWTService()
+
+	api := r.Group("/api")
+	all := api.Group("")
+	all.Use(middleware.JWTMiddleware(jwtSvc))
+
+	// auth
+	repo := authRepo.NewAuthRepo(provider)
+	authSvc := authService.NewAuthService(repo, provider, jwtSvc)
+	authHandler := handlerPkg.NewAuthHandler(authSvc)
+	auth := api.Group("/auth")
+	auth.POST("/register", authHandler.Register)
+	auth.POST("/login", authHandler.Login)
+
+	// auth approval
+	approval := auth.Group("")
+	approval.Use(middleware.JWTMiddlewareWithToken(jwtSvc))
+	approval.POST("/approve", authHandler.Approval)
+
+	// form
+	formRepo := authRepo.NewFormRepo(provider.DB())
+	formSvc := authService.NewFormService(*formRepo)
+	formHandler := handlerPkg.NewFormHandler(*formSvc)
+	form := all.Group("/form")
+	form.POST("/create", formHandler.StartCreateForm)
 
 	// health check
 	health := handlerPkg.NewHealthHandler(provider)
